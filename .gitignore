@@ -8,6 +8,9 @@ desktop.ini
 *.swp
 *.swo
 
+# Claude Code tooling (skills, local settings) — not part of the deliverable
+.claude/
+
 # Local env (just in case)
 .env
 .env.local
