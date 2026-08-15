@@ -1,0 +1,655 @@
+<title>Ruff Cuts Voicebook</title>
+<style>
+  :root {
+    --canvas: #E8E4D8;
+    --paper: #F8F6F0;
+    --paper-2: #FCFBF7;
+    --rail-bg: #DDD8C8;
+    --ink: #2A2521;
+    --ink-soft: #5B534A;
+    --ink-faint: #8B8275;
+    --line: #CCC5B2;
+    --line-soft: #DAD4C4;
+    --brass: #8A6A32;
+    --brass-ink: #FFFFFF;
+    --sage: #57684A;
+    --sage-bg: #E3E8D8;
+    --amber: #96690F;
+    --amber-bg: #F1E2C4;
+    --brick: #8A3A28;
+    --brick-bg: #F1DBD2;
+    --font-ui: -apple-system, "Segoe UI", system-ui, Roboto, sans-serif;
+    --font-quote: Georgia, "Iowan Old Style", ui-serif, serif;
+    --radius: 3px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --canvas: #1B1712;
+      --paper: #241F19;
+      --paper-2: #2A241D;
+      --rail-bg: #171310;
+      --ink: #EDE7DA;
+      --ink-soft: #C6BDAC;
+      --ink-faint: #8F8676;
+      --line: #3A332A;
+      --line-soft: #322C24;
+      --brass: #D3A75C;
+      --brass-ink: #201804;
+      --sage: #9FB388;
+      --sage-bg: #2B3324;
+      --amber: #E0AC53;
+      --amber-bg: #3A2D14;
+      --brick: #E08D74;
+      --brick-bg: #3A231C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --canvas: #1B1712;
+    --paper: #241F19;
+    --paper-2: #2A241D;
+    --rail-bg: #171310;
+    --ink: #EDE7DA;
+    --ink-soft: #C6BDAC;
+    --ink-faint: #8F8676;
+    --line: #3A332A;
+    --line-soft: #322C24;
+    --brass: #D3A75C;
+    --brass-ink: #201804;
+    --sage: #9FB388;
+    --sage-bg: #2B3324;
+    --amber: #E0AC53;
+    --amber-bg: #3A2D14;
+    --brick: #E08D74;
+    --brick-bg: #3A231C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { text-wrap: balance; margin: 0; font-weight: 700; }
+  p { margin: 0; }
+  ::selection { background: var(--brass); color: var(--brass-ink); }
+  a { color: var(--brass); }
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .topbar {
+    padding: 22px 28px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .topbar .mark {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .topbar .tag {
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+
+  .shell {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    min-height: 0;
+  }
+  @media (max-width: 760px) {
+    .shell { grid-template-columns: 1fr; }
+  }
+
+  .rail {
+    background: var(--rail-bg);
+    border-right: 1px solid var(--line);
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  @media (max-width: 760px) {
+    .rail {
+      flex-direction: row;
+      overflow-x: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+    }
+  }
+  .rail-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 10px 10px 6px;
+    white-space: nowrap;
+  }
+  .rail-btn {
+    all: unset;
+    cursor: pointer;
+    padding: 9px 10px;
+    border-radius: var(--radius);
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .rail-btn:hover { background: var(--line-soft); color: var(--ink); }
+  .rail-btn.active { background: var(--brass); color: var(--brass-ink); font-weight: 600; }
+  .rail-div { height: 1px; background: var(--line); margin: 12px 8px; }
+  @media (max-width: 760px) {
+    .rail-div { width: 1px; height: auto; align-self: stretch; margin: 4px 6px; }
+  }
+
+  .pane { padding: 34px 40px 80px; max-width: 780px; }
+  @media (max-width: 760px) { .pane { padding: 24px 18px 60px; } }
+
+  .panel { display: none; flex-direction: column; gap: 26px; }
+  .panel.active { display: flex; }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--brass);
+    font-weight: 700;
+  }
+  h1.title { font-size: 1.9rem; margin-top: 4px; }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); max-width: 62ch; }
+
+  .specrow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .spec {
+    background: var(--paper);
+    padding: 12px 14px;
+  }
+  .spec .k { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
+  .spec .v { font-variant-numeric: tabular-nums; font-weight: 700; margin-top: 3px; }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+
+  .pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+  .pillar { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .pillar .n { font-size: 0.7rem; color: var(--brass); font-weight: 700; letter-spacing: 0.04em; }
+  .pillar h3 { font-size: 0.98rem; margin-top: 4px; }
+  .pillar p { color: var(--ink-soft); font-size: 0.88rem; margin-top: 6px; }
+
+  table.spectrum { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  table.spectrum th, table.spectrum td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); }
+  table.spectrum th { color: var(--ink-faint); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  table.spectrum td.yes { color: var(--sage); font-weight: 600; }
+  table.spectrum td.no { color: var(--ink-faint); }
+
+  .chipwrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border-radius: var(--radius); padding: 6px 11px; font-size: 0.86rem; border: 1px solid transparent; }
+  .chip.use { background: var(--sage-bg); color: var(--sage); }
+  .chip.avoid { background: var(--brick-bg); color: var(--brick); text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 620px) { .twocol { grid-template-columns: 1fr; } }
+  .colhead { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 10px; }
+  .colhead.use { color: var(--sage); }
+  .colhead.avoid { color: var(--brick); }
+
+  .rulelist { display: flex; flex-direction: column; gap: 10px; }
+  .rule { display: grid; grid-template-columns: 140px 1fr; gap: 12px; font-size: 0.9rem; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+  .rule:first-child { border-top: none; }
+  .rule .term { font-weight: 700; }
+  .rule .desc { color: var(--ink-soft); }
+
+  .scenario { display: flex; flex-direction: column; gap: 10px; }
+  .scenario h3 { font-size: 1.05rem; }
+  .scenario .when { color: var(--ink-faint); font-size: 0.85rem; }
+  .scenario ul { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: 0.9rem; display: flex; flex-direction: column; gap: 4px; }
+  .quote {
+    font-family: var(--font-quote);
+    font-style: italic;
+    font-size: 1rem;
+    background: var(--paper-2);
+    border-left: 3px solid var(--brass);
+    padding: 12px 16px;
+    color: var(--ink);
+    white-space: pre-line;
+  }
+
+  .segmented { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .segmented button {
+    all: unset; cursor: pointer; padding: 8px 16px; font-size: 0.86rem; color: var(--ink-soft); background: var(--paper);
+  }
+  .segmented button + button { border-left: 1px solid var(--line); }
+  .segmented button.active { background: var(--brass); color: var(--brass-ink); font-weight: 600; }
+
+  textarea#draft {
+    width: 100%;
+    min-height: 140px;
+    resize: vertical;
+    font-family: var(--font-ui);
+    font-size: 0.96rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+  textarea#draft::placeholder { color: var(--ink-faint); }
+
+  .btn-primary {
+    all: unset; cursor: pointer;
+    background: var(--brass); color: var(--brass-ink);
+    padding: 10px 20px; border-radius: var(--radius);
+    font-weight: 700; font-size: 0.92rem;
+    align-self: flex-start;
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+
+  .summary { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill { border-radius: 999px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pill.brick { background: var(--brick-bg); color: var(--brick); }
+  .pill.amber { background: var(--amber-bg); color: var(--amber); }
+  .pill.sage { background: var(--sage-bg); color: var(--sage); }
+
+  .flag { border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: var(--radius); padding: 13px 16px; background: var(--paper); display: flex; flex-direction: column; gap: 6px; }
+  .flag.sev-brick { border-left-color: var(--brick); }
+  .flag.sev-amber { border-left-color: var(--amber); }
+  .flag .sev-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+  .flag.sev-brick .sev-label { color: var(--brick); }
+  .flag.sev-amber .sev-label { color: var(--amber); }
+  .flag .snippet { font-family: var(--font-quote); font-style: italic; color: var(--ink-soft); }
+  .flag .why { font-size: 0.9rem; color: var(--ink-soft); }
+  .flag .jump { all: unset; cursor: pointer; color: var(--brass); font-size: 0.82rem; font-weight: 600; align-self: flex-start; }
+  .flag .jump:hover { text-decoration: underline; }
+
+  .clean-state { display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: var(--sage-bg); border-radius: var(--radius); color: var(--sage); font-weight: 600; }
+
+  .resultsList { display: flex; flex-direction: column; gap: 10px; }
+  .hint { color: var(--ink-faint); font-size: 0.84rem; }
+
+  .footer {
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    padding: 16px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+  }
+  .footer .brand { color: var(--ink-soft); font-weight: 600; }
+  .footer .rule { color: var(--ink-faint); font-style: italic; font-family: var(--font-quote); }
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <span class="mark">Ruff Cuts Voicebook</span>
+    <span class="tag">The voice guide, and a place to test your own draft against it.</span>
+  </header>
+
+  <div class="shell">
+    <nav class="rail" id="rail">
+      <div class="rail-label">The guide</div>
+      <button class="rail-btn active" data-target="overview">Overview</button>
+      <button class="rail-btn" data-target="principles">Voice principles</button>
+      <button class="rail-btn" data-target="language">Language</button>
+      <button class="rail-btn" data-target="scenarios">Scenarios</button>
+      <div class="rail-div"></div>
+      <div class="rail-label">The tool</div>
+      <button class="rail-btn" data-target="checker">Check your draft</button>
+    </nav>
+
+    <main class="pane">
+
+      <section class="panel active" id="overview">
+        <div>
+          <div class="eyebrow">Who we are</div>
+          <h1 class="title">The friend who happens to be an expert.</h1>
+          <p class="lede" style="margin-top:10px;">Ruff Cuts grooms dogs inside a van, in the customer's driveway. No kennels, no drop-offs, no waiting room. Started by Dana two years ago after fifteen years as a vet tech, watching dogs shake and stress out in clinics — she figured there had to be a better way. Now it's Dana, two other groomers, three vans, booked six weeks out.</p>
+        </div>
+        <div class="specrow">
+          <div class="spec"><div class="k">Location</div><div class="v">Austin, TX</div></div>
+          <div class="spec"><div class="k">Founded</div><div class="v">2 years ago</div></div>
+          <div class="spec"><div class="k">Team</div><div class="v">3 groomers, 3 vans</div></div>
+          <div class="spec"><div class="k">Price range</div><div class="v">$95–$140</div></div>
+          <div class="spec"><div class="k">Booking</div><div class="v">6 weeks out</div></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem;">The customer</h3>
+          <p class="lede" style="margin-top:8px;">Dual-income households, 35–55. Money, not time — a lot work from home. They pay a premium so they never leave the house: we show up, we text when we're done, they bring the dog inside. They don't need convincing grooming matters. They need convincing <em>this version</em> is worth it. Talk to them like the smart, busy adults they are.</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem;">What makes us different</h3>
+          <p class="lede" style="margin-top:8px;">Not cheaper, not fancier — the dog never leaves the driveway. No car ride, no kennel, no other dogs, no stranger holding the leash while you're not there. For an anxious dog, or an anxious owner, that's the entire pitch.</p>
+        </div>
+      </section>
+
+      <section class="panel" id="principles">
+        <div>
+          <div class="eyebrow">Voice principles</div>
+          <h1 class="title">Five pillars</h1>
+          <p class="lede" style="margin-top:10px;">Every piece of copy should be able to be read out loud, in a normal voice, to someone standing in their driveway.</p>
+        </div>
+        <div class="pillars">
+          <div class="pillar"><div class="n">01</div><h3>Warm, not cute</h3><p>Warmth comes from specificity and care, not diminutives.</p></div>
+          <div class="pillar"><div class="n">02</div><h3>Confident, not corporate</h3><p>We say what we know plainly — no hiding behind policy language.</p></div>
+          <div class="pillar"><div class="n">03</div><h3>Respect their time</h3><p>No filler, no hard sell, no explaining what they already know.</p></div>
+          <div class="pillar"><div class="n">04</div><h3>Different, not dismissive</h3><p>We don't need to put anyone down to make our case.</p></div>
+          <div class="pillar"><div class="n">05</div><h3>Calm is the product</h3><p>The writing should feel the way the service feels: unhurried, capable, done.</p></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem; margin-bottom:6px;">Voice on a spectrum</h3>
+          <table class="spectrum">
+            <thead><tr><th></th><th>We are</th><th>We are not</th></tr></thead>
+            <tbody>
+              <tr><td>Warmth</td><td class="yes">Warm</td><td class="no">Cutesy</td></tr>
+              <tr><td>Authority</td><td class="yes">Confident</td><td class="no">Boastful</td></tr>
+              <tr><td>Register</td><td class="yes">Professional</td><td class="no">Corporate</td></tr>
+              <tr><td>Energy</td><td class="yes">Calm</td><td class="no">Flat</td></tr>
+              <tr><td>Humor</td><td class="yes">Dry, occasional</td><td class="no">Punny</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" id="language">
+        <div>
+          <div class="eyebrow">Language</div>
+          <h1 class="title">Say this, not that</h1>
+          <p class="lede" style="margin-top:10px;">Not a script — a register to write in.</p>
+        </div>
+        <div class="twocol">
+          <div>
+            <div class="colhead use">Use</div>
+            <div class="chipwrap">
+              <span class="chip use">We come to you</span>
+              <span class="chip use">Groomed in the driveway</span>
+              <span class="chip use">No cage, no car ride</span>
+              <span class="chip use">We'll tell you straight</span>
+              <span class="chip use">Text you the second we're done</span>
+              <span class="chip use">Calm / comfortable / at home</span>
+            </div>
+          </div>
+          <div>
+            <div class="colhead avoid">Avoid</div>
+            <div class="chipwrap">
+              <span class="chip avoid">Fur baby / fur family</span>
+              <span class="chip avoid">Pupper / doggo</span>
+              <span class="chip avoid">Pawsitively / pupdate</span>
+              <span class="chip avoid">Toe beans / sploot / blep</span>
+              <span class="chip avoid">Zoomies / pet parent</span>
+              <span class="chip avoid">Per our policy</span>
+              <span class="chip avoid">Valued customer</span>
+              <span class="chip avoid">Please be advised</span>
+              <span class="chip avoid">Mistakes were made</span>
+              <span class="chip avoid">Rest assured</span>
+              <span class="chip avoid">Best in Austin</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem; margin-bottom:2px;">The full checkable list</h3>
+          <p style="color:var(--ink-soft); font-size:0.88rem;">These chips are a sample. Every banned phrase and pattern the checker actually tests — cutesy wordplay, corporate deflection, hedging, hard-sell pressure, sign-offs — lives in <code>voice-guide/02_language/rules.md</code>, one row per rule, with the reason and a suggested rewrite. That table is what the checker on this page is compiled from.</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem; margin-bottom:10px;">Mechanics</h3>
+          <div class="rulelist">
+            <div class="rule"><div class="term">Sentences</div><div class="desc">Short. Default one idea per sentence.</div></div>
+            <div class="rule"><div class="term">Contractions</div><div class="desc">Always — "we'll," "you're." Full forms read stiff.</div></div>
+            <div class="rule"><div class="term">Exclamation points</div><div class="desc">One per piece of copy, maximum, only where genuine. Never stacked.</div></div>
+            <div class="rule"><div class="term">Emoji</div><div class="desc">A single 🐾 at the end of a caption is fine. Never in email, never stacked.</div></div>
+            <div class="rule"><div class="term">Caps</div><div class="desc">No ALL CAPS for emphasis.</div></div>
+            <div class="rule"><div class="term">Sign-offs</div><div class="desc">Plain — "— Dana." No "Best regards" or signature blocks.</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="scenarios">
+        <div>
+          <div class="eyebrow">Scenarios</div>
+          <h1 class="title">Format by format</h1>
+        </div>
+
+        <div class="scenario">
+          <h3>Social caption</h3>
+          <div class="when">Lead with the dog, not the business. 2–4 sentences, one idea. Never salesy.</div>
+          <div class="quote">Winnie got the full treatment this morning — bath, trim, the works — without ever leaving her driveway. This is the whole job, honestly. 🐾</div>
+        </div>
+
+        <div class="scenario">
+          <h3>Apology email</h3>
+          <div class="when">Open with the apology, not context. State what happened in one sentence. Offer the fix before they ask.</div>
+          <div class="quote">Hi Maria,
+
+Sorry about this morning — we ran behind and didn't text you until we were already late, which isn't how we do things. That's on us.
+
+I've moved Biscuit to the front of the list for his next groom, no charge. Thanks for the patience today.
+
+— Dana</div>
+        </div>
+
+        <div class="scenario">
+          <h3>Complaint response</h3>
+          <div class="when">Take it seriously before explaining. Ask one clarifying question. Always offer a concrete next step.</div>
+          <div class="quote">Hi James,
+
+Sorry to hear that — a shorter cut than you asked for isn't a small thing. Can you send a photo when you get a chance? I want to see exactly what happened before we fix it.
+
+— Dana</div>
+        </div>
+
+        <div class="scenario">
+          <h3>Competitor mention</h3>
+          <div class="when">Never name a competitor. Contrast the model, not the people. State the tradeoff once, let them conclude.</div>
+          <div class="quote">Most groomers are good at what they do — this isn't about that. The difference is what happens around the grooming: the car ride, the kennel, the other dogs. We skip all of that.</div>
+        </div>
+      </section>
+
+      <section class="panel" id="checker">
+        <div>
+          <div class="eyebrow">The tool</div>
+          <h1 class="title">Check your draft</h1>
+          <p class="lede" style="margin-top:10px;">Paste what you're about to send. This runs it against the guide's own rules — phrasing, punctuation, length — and cites the specific rule for anything it flags.</p>
+        </div>
+
+        <div>
+          <div class="segmented" id="typeSelect">
+            <button class="active" data-type="caption">Caption</button>
+            <button data-type="email">Email</button>
+            <button data-type="general">General</button>
+          </div>
+        </div>
+
+        <textarea id="draft" placeholder="Paste your caption or email here…"></textarea>
+        <button class="btn-primary" id="checkBtn">Check it</button>
+
+        <div id="results" style="display:none; flex-direction:column; gap:14px;"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <span class="brand">🐾 Ruff Cuts — Austin, TX</span>
+    <span class="rule">When in doubt, read it out loud.</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var rail = document.getElementById('rail');
+  var panels = document.querySelectorAll('.panel');
+
+  function showSection(id) {
+    panels.forEach(function (p) { p.classList.toggle('active', p.id === id); });
+    rail.querySelectorAll('.rail-btn').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.target === id);
+    });
+  }
+
+  rail.addEventListener('click', function (e) {
+    var btn = e.target.closest('.rail-btn');
+    if (!btn) return;
+    showSection(btn.dataset.target);
+  });
+
+  var typeSelect = document.getElementById('typeSelect');
+  var currentType = 'caption';
+  typeSelect.addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    currentType = btn.dataset.type;
+    typeSelect.querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+  });
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // Compiled from voice-guide/02_language/rules.md. Edit that file, then recompile this array — never patch it independently.
+  var BANNED = [
+    { re: /fur[\s-]?bab\w*/gi, sev: 'brick', context: 'any', why: 'Reads cutesy, not warm. Try: the dog\'s name, or "your dog." See Language.', section: 'language' },
+    { re: /\bpupper\b|\bdoggo\b|\bpawrent\w*/gi, sev: 'brick', context: 'any', why: 'Baby-talk for the dog. Try: the dog\'s name, or "your dog." See Language.', section: 'language' },
+    { re: /fur family/gi, sev: 'brick', context: 'any', why: 'Same problem as "fur baby," dressed up. Try: "your dog," or the dog\'s name. See Language.', section: 'language' },
+    { re: /pawsitiv\w*|furrific\w*|fur-?fect\w*|fur-?ever/gi, sev: 'brick', context: 'any', why: 'Banned dog-pun wordplay. Try: say it straight, skip the pun. See Language.', section: 'language' },
+    { re: /paw-?some|paw-?fect|a-paw-log\w*/gi, sev: 'brick', context: 'any', why: 'Same pun-wordplay problem, different word. Try: say it straight. See Language.', section: 'language' },
+    { re: /pupdate/gi, sev: 'brick', context: 'any', why: 'Pun wordplay, same family as "pawsitively." Try: "update." See Language.', section: 'language' },
+    { re: /mutts about (you|it)|raise the woof|pup-?arazzi|paw-?lease|paw-?don\w*|woof-?derful|(un-?)?fur-?gettable|fur-?tastic/gi, sev: 'brick', context: 'any', why: 'More pun wordplay in the same family. Try: say it straight. See Language.', section: 'language' },
+    { re: /ruff day/gi, sev: 'brick', context: 'any', why: 'Pun on "rough day." Try: "a hard day," "a long day." See Language.', section: 'language' },
+    { re: /toe beans|sploot\w*|\bblep\w*|\bmlem\w*|\bderp\w*/gi, sev: 'brick', context: 'any', why: 'Internet pet-slang ("DoggoLingo") — too online for our register. Try: describe plainly. See Language.', section: 'language' },
+    { re: /\bdog mom\b|\bdog dad\b/gi, sev: 'amber', context: 'any', why: 'Common shorthand, but leans cutesy-pet-parent. Try: describe by name or relationship instead. See Language.', section: 'language' },
+    { re: /\bzoomies\b/gi, sev: 'amber', context: 'any', why: 'Cute and common, but casual — worth a second look in brand copy. Try: "burst of energy," or describe what happened. See Language.', section: 'language' },
+    { re: /pet parent\w*/gi, sev: 'amber', context: 'any', why: 'Softer than "fur baby," but still a pet-brand default — we said "smart adults," not "parents." Try: "you," their name, or "your dog\'s person." See Language.', section: 'language' },
+    { re: /per our policy|as per our previous/gi, sev: 'brick', context: 'any', why: 'Corporate deflection. Try: say what happened, plainly. See Language.', section: 'language' },
+    { re: /valued customer/gi, sev: 'brick', context: 'any', why: 'Nobody says this and means it. Try: use their name. See Language.', section: 'language' },
+    { re: /please be advised/gi, sev: 'brick', context: 'any', why: 'Corporate throat-clearing. Try: just say the thing. See Language.', section: 'language' },
+    { re: /we are writing to inform you|this email is to inform you/gi, sev: 'brick', context: 'email', why: 'Stiff, buries the point. Try: lead with the point. See Language.', section: 'language' },
+    { re: /due to unforeseen circumstances|circumstances beyond our control/gi, sev: 'brick', context: 'any', why: 'Blame-shifting, no accountability. Try: say plainly what happened. See Scenarios → Apology email.', section: 'scenarios' },
+    { re: /we sincerely apologize for any inconvenience this may have caused/gi, sev: 'brick', context: 'any', why: 'The textbook non-apology. Try: say what happened and what we’re doing. See Scenarios → Apology email.', section: 'scenarios' },
+    { re: /mistakes were made/gi, sev: 'brick', context: 'any', why: 'Passive blame-dodge. Try: say who/what plainly, own it. See Language.', section: 'language' },
+    { re: /we (take|appreciate) your (concerns?|patience)[^.?!]*(very seriously|during this time)/gi, sev: 'amber', context: 'any', why: 'Stock corporate opener. Try: say the specific thing instead. See Language.', section: 'language' },
+    { re: /at this time|at the present time/gi, sev: 'amber', context: 'any', why: 'Filler — cut it. Try: "now," or delete it. See Language.', section: 'language' },
+    { re: /moving forward/gi, sev: 'amber', context: 'any', why: 'Corporate filler, usually deletable entirely. See Language.', section: 'language' },
+    { re: /rest assured/gi, sev: 'amber', context: 'any', why: 'Corporate reassurance filler. Try: state the fact plainly. See Language.', section: 'language' },
+    { re: /please do not hesitate to contact us/gi, sev: 'amber', context: 'any', why: 'Stiff, generic. Try: "text us if anything changes." See Language.', section: 'language' },
+    { re: /it has come to our attention/gi, sev: 'amber', context: 'any', why: 'Stiff, impersonal opener. Try: just say what happened. See Language.', section: 'language' },
+    { re: /we regret to inform you/gi, sev: 'amber', context: 'any', why: 'Stiff. Try: say it plainly and warmly. See Language.', section: 'language' },
+    { re: /best in austin|\#1\b/gi, sev: 'amber', context: 'any', why: 'Unverifiable superlative. Try: name the specific thing you’re proud of. See Language.', section: 'language' },
+    { re: /don't miss out|limited time only|act now/gi, sev: 'amber', context: 'any', why: 'Hard-sell pressure — not our register. Try: state the fact, let them decide. See Language.', section: 'language' },
+    { re: /best regards|kind regards|sincerely,?/gi, sev: 'amber', context: 'email', why: 'Formal sign-off. Try: "— Dana" or "— The Ruff Cuts team." See Language.', section: 'language' }
+  ];
+
+  function checkDraft(text, type) {
+    var flags = [];
+
+    BANNED.forEach(function (rule) {
+      if (rule.context !== 'any' && rule.context !== type) return;
+      var m = text.match(rule.re);
+      if (m) {
+        flags.push({ sev: rule.sev, snippet: m[0], why: rule.why, section: rule.section });
+      }
+    });
+
+    if (/!!+/.test(text)) {
+      flags.push({ sev: 'brick', snippet: text.match(/[^.?!]*!!+/)[0].trim(), why: 'Stacked exclamation points — one per piece of copy, maximum. See Language → Mechanics.', section: 'language' });
+    } else {
+      var bangs = (text.match(/!/g) || []).length;
+      if (bangs > 1) {
+        flags.push({ sev: 'amber', snippet: bangs + ' exclamation points found', why: 'Cap is one exclamation point per piece of copy, only where genuine. See Language → Mechanics.', section: 'language' });
+      }
+    }
+
+    var capsWords = text.match(/\b[A-Z]{4,}\b/g);
+    if (capsWords) {
+      flags.push({ sev: 'amber', snippet: capsWords.join(', '), why: 'No ALL CAPS for emphasis. See Language → Mechanics.', section: 'language' });
+    }
+
+    var emojiMatches = text.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu) || [];
+    if (type === 'email' && emojiMatches.length > 0) {
+      flags.push({ sev: 'brick', snippet: emojiMatches.join(' '), why: 'No emoji in email — ever. See Language → Mechanics.', section: 'language' });
+    } else if (emojiMatches.length > 1) {
+      flags.push({ sev: 'amber', snippet: emojiMatches.join(' '), why: 'One emoji, maximum, and only at the end. See Language → Mechanics.', section: 'language' });
+    }
+
+    var sentences = text.split(/(?<=[.!?])\s+/).filter(function (s) { return s.trim().length > 0; });
+    sentences.forEach(function (s) {
+      var words = s.trim().split(/\s+/).length;
+      if (words > 28) {
+        flags.push({ sev: 'amber', snippet: s.trim().slice(0, 70) + (s.length > 70 ? '…' : ''), why: 'Long sentence — default to short, one idea at a time. See Language → Mechanics.', section: 'language' });
+      }
+    });
+
+    if (type === 'caption' && sentences.length > 4) {
+      flags.push({ sev: 'amber', snippet: sentences.length + ' sentences', why: 'Captions run 2–4 sentences, one idea. See Scenarios → Social caption.', section: 'scenarios' });
+    }
+
+    return flags;
+  }
+
+  document.getElementById('checkBtn').addEventListener('click', function () {
+    var text = document.getElementById('draft').value;
+    var results = document.getElementById('results');
+    if (!text.trim()) {
+      results.style.display = 'flex';
+      results.innerHTML = '<p class="hint">Paste something above first.</p>';
+      return;
+    }
+
+    var flags = checkDraft(text, currentType);
+    var brickCount = flags.filter(function (f) { return f.sev === 'brick'; }).length;
+    var amberCount = flags.filter(function (f) { return f.sev === 'amber'; }).length;
+
+    var html = '<div class="summary">';
+    if (brickCount) html += '<span class="pill brick">' + brickCount + ' rule' + (brickCount > 1 ? 's' : '') + ' broken</span>';
+    if (amberCount) html += '<span class="pill amber">' + amberCount + ' worth a look</span>';
+    if (!brickCount && !amberCount) html += '<span class="pill sage">Reads like Ruff Cuts</span>';
+    html += '</div>';
+
+    if (flags.length === 0) {
+      html += '<div class="clean-state">No flags — this sounds like us.</div>';
+    } else {
+      html += '<div class="resultsList">';
+      flags.forEach(function (f) {
+        html += '<div class="flag sev-' + f.sev + '">' +
+          '<div class="sev-label">' + (f.sev === 'brick' ? 'Breaks a hard rule' : 'Worth a look') + '</div>' +
+          '<div class="snippet">“' + escapeHtml(String(f.snippet)) + '”</div>' +
+          '<div class="why">' + escapeHtml(f.why) + '</div>' +
+          '<button class="jump" data-section="' + f.section + '">See the rule →</button>' +
+          '</div>';
+      });
+      html += '</div>';
+    }
+
+    results.style.display = 'flex';
+    results.innerHTML = html;
+
+    results.querySelectorAll('.jump').forEach(function (btn) {
+      btn.addEventListener('click', function () { showSection(btn.dataset.section); });
+    });
+  });
+})();
+</script>
