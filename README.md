@@ -4,7 +4,7 @@ A brand voice guide for **Ruff Cuts**, a mobile dog grooming service in Austin, 
 
 Rather than a single document, the deliverable is a small ICM (Interpretable Context Methodology — Van Clief & McDermott, arXiv:2603.16021) workspace: the voice guide as a navigable knowledge bundle, plus a pipeline that turns it into an interactive tool — a new hire can read the guide and paste a draft caption or email to have it checked against the guide's own rules.
 
-**Live app:** once GitHub Pages is enabled for this repo (Settings → Pages → Source: GitHub Actions), it'll deploy to `https://jdmonroyr.github.io/brand-voice-icm-community-competition-1/`.
+**Live app:** https://jdmonroyr.github.io/brand-voice-icm-community-competition-1/ — deployed via GitHub Actions on every push to `main` (see `.github/workflows/pages.yml`).
 
 ## Start here
 
@@ -17,7 +17,7 @@ Rather than a single document, the deliverable is a small ICM (Interpretable Con
 
 ## Why it's structured this way
 
-Built with the `icm-architect` skill: numbered folders carry sequencing, folder hierarchy carries context scoping, and plain markdown carries state — so a human (or an AI) can open any folder and see exactly what it's for, without a wiki or a framework. Every working folder has a `CONTEXT.md` stating its inputs, its job, its outputs, and what a human should check before moving on.
+Built with [`icm-architect`](https://github.com/RinDig/icm-architect), a Claude Code skill (tooling used to build this — not vendored in this repo): numbered folders carry sequencing, folder hierarchy carries context scoping, and plain markdown carries state — so a human (or an AI) can open any folder and see exactly what it's for, without a wiki or a framework. Every working folder has a `CONTEXT.md` stating its inputs, its job, its outputs, and what a human should check before moving on.
 
 ## Rebuilding the app
 
